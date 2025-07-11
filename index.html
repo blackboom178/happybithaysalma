@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Salma</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #000000;
+            --text-color: #FFFFFF;
+            --accent-primary: #FFFFFF;
+            --accent-secondary: #AAAAAA;
+            --glow-color: rgba(255, 255, 255, 0.5);
+            --font-serif: 'Cormorant Garamond', serif;
+            --font-sans: 'Montserrat', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-sans);
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .page {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 10;
+        }
+        
+        .page.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .story-slide {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 5;
+        }
+        
+        .glassmorphic {
+            background: rgba(10, 10, 10, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 90%;
+        }
+
+        #password-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--accent-secondary);
+            color: white;
+            font-size: 1.5rem;
+            text-align: center;
+            width: 250px;
+            outline: none;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        #password-input:focus { border-bottom-color: var(--accent-primary); }
+
+        #password-submit {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--accent-secondary);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #password-submit:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .prompt-text {
+            font-family: var(--font-serif);
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            color: #ccc;
+            margin-bottom: 1.5rem;
+        }
+
+        #home-page h1 {
+            font-family: var(--font-serif);
+            font-size: clamp(2.5rem, 10vw, 5rem);
+            line-height: 1.2;
+            text-shadow: 0 0 15px var(--glow-color);
+        }
+
+        #start-button {
+            margin-top: 3rem;
+            padding: 0.75rem 2rem;
+            font-family: var(--font-sans);
+            font-weight: bold;
+            font-size: 1rem;
+            color: white;
+            background: transparent;
+            border: 2px solid var(--accent-secondary);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #start-button:hover { background: var(--accent-primary); color: black; transform: scale(1.05); }
+
+        .story-slide-text { 
+            font-family: var(--font-serif); 
+            font-size: clamp(1.5rem, 8vw, 4.5rem); 
+            line-height: 1.3; 
+            text-shadow: 0 0 10px var(--glow-color); 
+            padding: 0 1rem;
+        }
+        #counter { font-size: clamp(3rem, 12vw, 6rem); font-weight: bold; }
+        
+        #voice-surprise-trigger {
+            margin-top: 2rem;
+            font-size: 2.5rem;
+            cursor: pointer;
+            color: var(--accent-primary);
+            animation: pulse 2s infinite;
+            background: transparent;
+            border: none;
+            outline: none;
+        }
+        @keyframes pulse { 
+            0% { transform: scale(1); } 
+            50% { transform: scale(1.1); } 
+            100% { transform: scale(1); } 
+        }
+
+        #play-gift-button, #final-surprise-button { 
+            margin-top: 2rem; 
+            padding: 0.75rem 2rem; 
+            font-size: 1rem; 
+            color: white; 
+            background: rgba(255,255,255,0.1); 
+            border: 1px solid white; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+        }
+        #play-gift-button:hover, #final-surprise-button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .surprise-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 90%;
+            width: 90%;
+            text-align: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .surprise-popup.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .surprise-popup h2 {
+            font-family: var(--font-serif);
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+            text-shadow: 0 0 10px var(--glow-color);
+        }
+        
+        .surprise-popup p {
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+        
+        #final-video-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #final-video-page h1 {
+            font-family: var(--font-serif);
+            font-size: clamp(2.5rem, 10vw, 4rem);
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px var(--glow-color);
+        }
+        
+        #video-modal { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.9); 
+            display: none; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 200; 
+        }
+        #video-container { 
+            position: relative; 
+            width: 90%; 
+            max-width: 960px; 
+            aspect-ratio: 16 / 9; 
+        }
+        #video-container iframe,
+        #video-container video { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+        }
+        #close-video { 
+            position: absolute; 
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 201;
+        }
+
+        #mute-button {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            width: 45px;
+            height: 45px;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 150;
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        #mute-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    
+    <audio id="background-music" src="https://dl.dropboxusercontent.com/scl/fi/lib67xjwwpeunpjsvbvt4/I-Like-Me-Better-Instrumental-best-part.mp3?rlkey=cos9fx0a5emuqfzdywvcoku4d&dl=1" loop preload="auto"></audio>
+    <audio id="voice-message" preload="auto"><source src="https://cdn.pixabay.com/audio/2022/03/15/audio_55e9ce3a74.mp3" type="audio/mpeg"></audio>
+
+    <div id="password-page" class="page active">
+        <div class="glassmorphic">
+            <p id="password-prompt-text" class="prompt-text"></p>
+            <input type="password" id="password-input" autocomplete="off">
+            <button id="password-submit">Enter</button>
+        </div>
+    </div>
+
+    <div id="home-page" class="page">
+        <h1 id="home-text"></h1>
+        <button id="start-button">BEGIN</button>
+    </div>
+
+    <div id="cinematic-story-container"></div>
+    
+    <div id="surprise-popup" class="surprise-popup">
+        <h2>Happy Birthday, Salma!</h2>
+        <p>You've made every one of these days special just by being you.</p>
+        <p>Now, get ready for your final surprise...</p>
+    </div>
+    
+    <div id="final-video-page" class="page">
+        <h1>Your Special Gift</h1>
+        <button id="final-surprise-button">Play Your Surprise</button>
+    </div>
+    
+    <div id="video-modal"><div id="close-video">×</div><div id="video-container"></div></div>
+
+    <button id="mute-button">🔊</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.3/gsap.min.js"></script>
+    <script src="https://unpkg.com/typeit@8.8.3/dist/index.umd.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // --- CONFIGURATION ---
+                const YOUR_GIFT_VIDEO_URL = "https://www.youtube.com/embed/$dQw4w9WgXcQ?autoplay=1&rel=0"; 
+                
+                // UPDATE: Using the new Dropbox link for the final surprise.
+                // The link is modified with `raw=1` to ensure it plays directly.
+                const FINAL_SURPRISE_URL = "https://www.dropbox.com/scl/fi/imwjxih4etg5eszoc1yfu/Happy-Birthday.mp4?rlkey=92defbr66nu2etvp6trxuh2kp&raw=1";
+                
+                const elements = {
+                    passwordPage: document.getElementById('password-page'),
+                    homePage: document.getElementById('home-page'),
+                    storyContainer: document.getElementById('cinematic-story-container'),
+                    finalVideoPage: document.getElementById('final-video-page'),
+                    surprisePopup: document.getElementById('surprise-popup'),
+                    canvas: document.getElementById('bg-canvas'),
+                    passwordInput: document.getElementById('password-input'),
+                    passwordSubmit: document.getElementById('password-submit'),
+                    startButton: document.getElementById('start-button'),
+                    videoModal: document.getElementById('video-modal'),
+                    voiceMessageAudio: document.getElementById('voice-message'),
+                    backgroundMusic: document.getElementById('background-music'),
+                    finalSurpriseButton: document.getElementById('final-surprise-button'),
+                    closeVideo: document.getElementById('close-video'),
+                    muteButton: document.getElementById('mute-button')
+                };
+                
+                // --- ENHANCED STARFIELD BACKGROUND ---
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 30;
+                const renderer = new THREE.WebGLRenderer({ 
+                    canvas: elements.canvas, 
+                    alpha: true, 
+                    antialias: true,
+                    powerPreference: "high-performance"
+                });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+                // Create a more dynamic starfield
+                const starGeometry = new THREE.BufferGeometry();
+                const starMaterial = new THREE.PointsMaterial({
+                    color: 0xffffff,
+                    size: 0.1,
+                    transparent: true,
+                    opacity: 0.8,
+                    blending: THREE.AdditiveBlending,
+                    sizeAttenuation: true
+                });
+
+                const starCount = 5000;
+                const positions = new Float32Array(starCount * 3);
+                const sizes = new Float32Array(starCount);
+                const colors = new Float32Array(starCount * 3);
+
+                for (let i = 0; i < starCount; i++) {
+                    // Position stars in a sphere
+                    const radius = Math.random() * 600 + 100;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    
+                    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                    positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                    positions[i * 3 + 2] = radius * Math.cos(phi);
+                    
+                    // Random sizes
+                    sizes[i] = Math.random() * 0.5 + 0.1;
+                    
+                    // Color variations (mostly white with some blue/pink)
+                    if (Math.random() > 0.9) {
+                        colors[i * 3] = Math.random() * 0.5 + 0.5; // R
+                        colors[i * 3 + 1] = Math.random() * 0.3;   // G
+                        colors[i * 3 + 2] = Math.random() * 0.5 + 0.5; // B
+                    } else {
+                        colors[i * 3] = 1; // R
+                        colors[i * 3 + 1] = 1; // G
+                        colors[i * 3 + 2] = 1; // B
+                    }
+                }
+
+                starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                starGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+                const stars = new THREE.Points(starGeometry, starMaterial);
+                scene.add(stars);
+
+                // Add some larger "shining" stars
+                const bigStarsGeometry = new THREE.BufferGeometry();
+                const bigStarsMaterial = new THREE.PointsMaterial({
+                    color: 0xffffff,
+                    size: 0.5,
+                    transparent: true,
+                    opacity: 0.9,
+                    blending: THREE.AdditiveBlending,
+                    sizeAttenuation: true
+                });
+
+                const bigStarCount = 100;
+                const bigStarPositions = new Float32Array(bigStarCount * 3);
+                const bigStarSizes = new Float32Array(bigStarCount);
+                const bigStarColors = new Float32Array(bigStarCount * 3);
+
+                for (let i = 0; i < bigStarCount; i++) {
+                    bigStarPositions[i * 3] = (Math.random() - 0.5) * 2000;
+                    bigStarPositions[i * 3 + 1] = (Math.random() - 0.5) * 2000;
+                    bigStarPositions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
+                    
+                    bigStarSizes[i] = Math.random() * 0.8 + 0.5;
+                    
+                    // Color variations for big stars
+                    if (Math.random() > 0.7) {
+                        bigStarColors[i * 3] = 1; // R
+                        bigStarColors[i * 3 + 1] = Math.random() * 0.7; // G
+                        bigStarColors[i * 3 + 2] = Math.random() * 0.3 + 0.7; // B
+                    } else {
+                        bigStarColors[i * 3] = 1; // R
+                        bigStarColors[i * 3 + 1] = 1; // G
+                        bigStarColors[i * 3 + 2] = 1; // B
+                    }
+                }
+
+                bigStarsGeometry.setAttribute('position', new THREE.BufferAttribute(bigStarPositions, 3));
+                bigStarsGeometry.setAttribute('color', new THREE.BufferAttribute(bigStarColors, 3));
+                bigStarsGeometry.setAttribute('size', new THREE.BufferAttribute(bigStarSizes, 1));
+
+                const bigStars = new THREE.Points(bigStarsGeometry, bigStarsMaterial);
+                scene.add(bigStars);
+
+                // Animation variables
+                let time = 0;
+                const rotationSpeed = 0.0005;
+                const pulseSpeed = 0.001;
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    
+                    // Rotate stars slowly
+                    time += 0.01;
+                    stars.rotation.x += rotationSpeed * 0.5;
+                    stars.rotation.y += rotationSpeed;
+                    bigStars.rotation.x += rotationSpeed * 0.3;
+                    bigStars.rotation.y += rotationSpeed * 0.7;
+                    
+                    // Pulsing effect for big stars
+                    const sizes = bigStars.geometry.attributes.size.array;
+                    for (let i = 0; i < sizes.length; i++) {
+                        sizes[i] = bigStarSizes[i] * (1 + Math.sin(time * pulseSpeed + i) * 0.3);
+                    }
+                    bigStars.geometry.attributes.size.needsUpdate = true;
+                    
+                    renderer.render(scene, camera);
+                }
+
+                function handleResize() {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+                window.addEventListener('resize', handleResize);
+
+                // Start animation
+                animate();
+                
+                const storySlidesData = [
+                    { text: "We met in lockdown..." }, { text: "Started with a message." },
+                    { text: "Then math class — Class 10 —<br>and I saw your smile in person." }, { text: "That moment hasn't left me since." },
+                    { text: "Your Eyes:<br>\"The first thing I noticed.\"" }, { text: "Your Voice:<br>\"The first thing I felt.\"" }, 
+                    { text: "Your Presence:<br>\"The one thing I can't replace.\"" }, { type: 'counter' },
+                    { text: "\"You're still the only one I wait for.\"" }, { text: "\"Still the only one I trust.\"" }, { text: "\"Still the one.\"" },
+                    { type: 'gift' }, { text: "I love you, Salma.<br>This is just one chapter.<br>And we have thousands more." }, { text: "– Yours, always." }
+                ];
+                
+                function buildSlides() {
+                    storySlidesData.forEach((data) => {
+                        const slide = document.createElement('div');
+                        slide.className = 'story-slide';
+                        let content = '';
+                        if (data.text) content = `<p class="story-slide-text">${data.text}</p>`;
+                        else if (data.type === 'counter') content = `<div id="counter-container" style="opacity: 0;"><p id="counter" class="story-slide-text">0+</p><p>Days of Us</p></div><button id="voice-surprise-trigger" title="A surprise for you..." style="opacity: 0;">❤️</button>`;
+                        else if (data.type === 'gift') content = `<p class="story-slide-text">This is where words end...</p><button id="play-gift-button">Play Your Gift</button>`;
+                        slide.innerHTML = content;
+                        elements.storyContainer.appendChild(slide);
+                    });
+                }
+                
+                function showSurprisePopup() {
+                    elements.surprisePopup.classList.add('active');
+                    setTimeout(() => {
+                        elements.surprisePopup.classList.remove('active');
+                        document.querySelectorAll('.story-slide.active').forEach(s => s.classList.remove('active'));
+                        gsap.to(elements.storyContainer, {
+                            autoAlpha: 0,
+                            onComplete: () => {
+                                elements.finalVideoPage.classList.add('active');
+                                gsap.to(elements.finalVideoPage, { autoAlpha: 1, duration: 1 });
+                            }
+                        });
+                    }, 4000); 
+                }
+                
+                function pauseMusic() {
+                    if (!elements.backgroundMusic.paused && gsap.getProperty(elements.backgroundMusic, "volume") > 0) {
+                        gsap.to(elements.backgroundMusic, { volume: 0, duration: 1, onComplete: () => elements.backgroundMusic.pause() });
+                    }
+                }
+
+                function resumeMusic() {
+                    if (elements.backgroundMusic.paused) {
+                        elements.backgroundMusic.volume = 0;
+                        elements.backgroundMusic.play().catch(e => console.error("Audio resume failed", e));
+                        const targetVolume = elements.muteButton.textContent === '🔊' ? 0.4 : 0;
+                        gsap.to(elements.backgroundMusic, { volume: targetVolume, duration: 2 });
+                    }
+                }
+                
+                function playVideo(videoUrl) {
+                    if (!videoUrl) return;
+                    pauseMusic(); 
+                    const videoContainer = document.getElementById('video-container');
+
+                    if (videoUrl.includes('youtube.com') || videoUrl.includes('googleusercontent.com')) {
+                        videoContainer.innerHTML = `<iframe src="${videoUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+                    } else {
+                        videoContainer.innerHTML = `<video src="${videoUrl}" controls autoplay playsinline style="width:100%; height:100%;"></video>`;
+                    }
+
+                    elements.videoModal.style.display = 'flex';
+                    gsap.to(elements.videoModal, { autoAlpha: 1 });
+                }
+
+                function closeVideo(onResume) {
+                     gsap.to(elements.videoModal, { 
+                        autoAlpha: 0, 
+                        onComplete: () => {
+                            elements.videoModal.style.display = 'none';
+                            document.getElementById('video-container').innerHTML = '';
+                            resumeMusic(); 
+                            if(onResume) onResume();
+                        }
+                    });
+                }
+
+                function runCinematicSequence() {
+                    const masterTimeline = gsap.timeline();
+                    masterTimeline.to(elements.homePage, { autoAlpha: 0, duration: 1.5, onComplete: () => elements.homePage.style.display = 'none' });
+
+                    const allSlides = document.querySelectorAll('.story-slide');
+                    allSlides.forEach((slide, index) => {
+                        slide.classList.add('active');
+                        masterTimeline.to(slide, { autoAlpha: 1, duration: 1.5 });
+                        
+                        const counterContainer = slide.querySelector('#counter-container');
+                        if (counterContainer) {
+                            masterTimeline.to(counterContainer, { autoAlpha: 1, duration: 1 }, "+=0.5");
+                            masterTimeline.call(() => {
+                                const counter = { val: 0 };
+                                gsap.to(counter, { val: 2557, duration: 2.5, ease: 'power2.out', onUpdate: () => { document.getElementById('counter').textContent = Math.round(counter.val) + '+'; } });
+                            });
+                            const voiceTrigger = slide.querySelector('#voice-surprise-trigger');
+                            masterTimeline.to(voiceTrigger, { autoAlpha: 1, duration: 1 }, "+=2.5");
+                            masterTimeline.call(() => {
+                                masterTimeline.pause();
+                                voiceTrigger.onclick = () => {
+                                    if(elements.voiceMessageAudio.paused) elements.voiceMessageAudio.play().catch(e => console.error(e));
+                                    setTimeout(showSurprisePopup, 1500);
+                                };
+                            });
+
+                        } else if (slide.querySelector('#play-gift-button')) {
+                            masterTimeline.call(() => {
+                                masterTimeline.pause();
+                                slide.querySelector('#play-gift-button').onclick = () => playVideo(YOUR_GIFT_VIDEO_URL);
+                                elements.closeVideo.onclick = () => closeVideo(() => masterTimeline.resume());
+                            });
+                        }
+                        
+                        if (index < allSlides.length - 1) {
+                            masterTimeline.to(slide, { autoAlpha: 0, duration: 1.5 }, "+=3");
+                        }
+                    });
+                }
+
+                function init() {
+                    buildSlides();
+                    
+                    new TypeIt('#password-prompt-text', { strings: "This is not for the world. It's only for you, Salma.<br>Enter the password to begin...", speed: 50, lifeLike: true, cursor: false }).go();
+                    
+                    elements.passwordInput.focus();
+
+                    function checkPassword() {
+                        if (elements.passwordInput.value === '1715') {
+                            gsap.to(elements.passwordPage, {
+                                autoAlpha: 0,
+                                duration: 1.5,
+                                onComplete: () => {
+                                    elements.passwordPage.classList.remove('active');
+                                    elements.homePage.classList.add('active');
+                                    elements.backgroundMusic.volume = 0;
+                                    elements.backgroundMusic.play().catch(e => console.error("Audio play failed", e));
+                                    gsap.to(elements.backgroundMusic, { volume: 0.4, duration: 4 });
+                                    elements.muteButton.style.display = 'flex';
+                                    gsap.fromTo(elements.muteButton, {opacity: 0}, {opacity: 1, duration: 1});
+                                    new TypeIt('#home-text', { speed: 60, strings: "Happy Birthday, Salma", afterComplete: (instance) => {
+                                        instance.destroy();
+                                        gsap.to(elements.startButton, { autoAlpha: 1 });
+                                    }}).go();
+                                }
+                            });
+                        } else {
+                            elements.passwordInput.value = '';
+                            gsap.fromTo(elements.passwordPage.querySelector('.glassmorphic'), { x: 0 }, { x: -10, duration: 0.1, repeat: 5, yoyo: true, clearProps: "x" });
+                        }
+                    }
+                    
+                    elements.passwordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') checkPassword(); });
+                    elements.passwordSubmit.addEventListener('click', checkPassword);
+                    elements.startButton.addEventListener('click', runCinematicSequence, { once: true });
+                    
+                    elements.finalSurpriseButton.addEventListener('click', () => {
+                        playVideo(FINAL_SURPRISE_URL);
+                        elements.closeVideo.onclick = () => closeVideo();
+                    });
+
+                    elements.muteButton.addEventListener('click', () => {
+                        elements.backgroundMusic.muted = !elements.backgroundMusic.muted;
+                        elements.muteButton.textContent = elements.backgroundMusic.muted ? '🔇' : '🔊';
+                    });
+                }
+                
+                init();
+                
+            } catch (error) {
+                console.error("A critical error occurred:", error);
+                document.body.innerHTML = `<div style="color: white; padding: 2rem; text-align: center; font-family: monospace;"><h1>A critical error occurred.</h1><p>I apologize. Please check the developer console (F12) for details.</p><p>${error.message}</p></div>`;
+            }
+        });
+    </script>
+</body>
+</html>
